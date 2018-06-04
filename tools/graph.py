@@ -1,72 +1,70 @@
 #!/usr/bin/env python3.6
-"""Represent visually the luminosity.txt and center.txt datasets."""
-
 import click
 import numpy
-import matplotlib.pyplot as plot
+import matplotlib.pyplot as graph
 
-with open("./luminosity.txt", 'r') as input:
+
+@click.group()
+def main():
+    """
+    Represent visually the luminosity.txt and center.txt files.
+    """
+    pass
+
+
+@main.command('luminosity', help="Represent visually the luminosity.txt file.")
+@click.argument('input', type=click.File('r'))
+@click.option('--output', type=click.File('wb'))
+def luminosity(input, output):
     objects, frames, *values = map(int, input.read().split())
-    luminosity = numpy.array_split(values, frames)
+    objects = numpy.array(values).reshape(objects, frames)
 
-    plot.figure(figsize=(7, 7))
-    plot.title('Luminosity variation between frames')
+    graph.figure(figsize=(7, 7))
+    graph.title('Luminosity variation between frames')
+    graph.grid(True)
 
-    plot.xlabel('# Frame')
-    plot.xticks(range(frames))
-    plot.ylabel('# Luminosity')
-    plot.yscale('linear')
+    graph.xticks(range(frames))
+    graph.xlabel('# Frame')
+    graph.ylabel('# Luminosity')
 
-    plot.grid(True)
+    for number, object in enumerate(objects, 1):
+        graph.plot(object, label=(f'Object {number}'))
+    graph.legend()
 
-    for number, object in enumerate(luminosity, 1):
-        plot.plot(object, label=(f'Object {number}'))
-    plot.legend()
-    plot.show()
-    # plot.savefig('./luminosity.png')
-
-import sys
-sys.exit(0)
+    if output is None:
+        graph.show()
+    else:
+        graph.savefig(output)
 
 
+@main.command('center', help="Represent visually the center.txt file.")
+@click.argument('input', type=click.File('r'))
+@click.option('--output', type=click.File('wb'))
+def center(input, output):
+    objects, frames, width, height, *values = map(float, input.read().split())
+    objects = numpy.array(values).reshape(int(objects), int(frames), 2)
+
+    graph.figure(figsize=(7, 7))
+    graph.title('Moving centers')
+    graph.grid(True)
+
+    graph.xlabel('X')
+    graph.xticks(numpy.arange(0, width, 20))
+    graph.xlim([0, width])
+
+    graph.ylabel('Y')
+    graph.yticks(numpy.arange(0, height, 20))
+    graph.ylim([height, 0]) # FIXME: flipped Y axis for compatibility
+
+    for number, frames in enumerate(objects, 1):
+        graph.plot(*zip(*frames), 'o', label=(f'Object {number}'))
+    graph.legend()
+
+    if output is None:
+        graph.show()
+    else:
+        graph.savefig(output)
 
 
-o = int(objects)
-n = int(frames)
-W = int(width)
-H = int(height)
-
-plot.figure(figsize=(7, 7))
-plot.title('Moving Centers')
-plot.grid(True)
-
-yy = numpy.arange(0, H, 20)
-xx = numpy.arange(0, W, 20)
-
-plot.ylabel('H')
-plot.yticks(yy)
-plot.ylim([0, H])
-
-plot.xlabel('W')
-plot.xticks(xx)
-plot.xlim([0, W])
-it = 0
-
-for i in range(o):
-    data1 = []
-    data2 = []
-    for j in range(n):
-        data1.append(float(data[it]))
-        it = it+1
-        data2.append(H - float(data[it]))
-        it = it+1
-    plot.plot(data1, data2, 'o', label=('Object '+str(i+1)))
-plot.legend()
-# plot.show()
-plot.savefig("./center.png")
-
-
-
-
-with open("./center.txt", 'r') as centers:
-    centers = centers.read().split()
+if __name__ == '__main__':
+    main()
