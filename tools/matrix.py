@@ -36,7 +36,7 @@ def create(input, output, noise=False):
     matrices = list()
 
     for image in input:
-        image = Image.open(image).convert(mode="L")
+        image = Image.open(image).convert(mode="L")  # 8 bit gray
         dimensions += [image.size]
 
         if noise:
